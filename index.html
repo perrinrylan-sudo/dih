@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Two Key Challenge</title>
+<title>Consistency Challenge</title>
 
 <style>
 * {
@@ -16,7 +16,8 @@ body {
     background: #080d19;
     color: white;
     font-family: Arial, sans-serif;
-    overflow: hidden;
+    min-height: 100vh;
+    overflow-x: hidden;
 }
 
 .header {
@@ -35,6 +36,7 @@ body {
     background: #17243a;
     padding: 13px 18px;
     border-radius: 10px;
+    z-index: 2;
 }
 
 .highscore {
@@ -64,24 +66,76 @@ body {
     border: 1px solid #30435f;
     border-radius: 12px;
     padding: 15px;
-    width: 190px;
+    width: 230px;
+    z-index: 5;
 }
 
-.leaderboard h3 {
-    text-align: center;
+.lb-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.lb-header h3 {
     color: #4ba3ff;
-    margin-top: 0;
+    margin: 0;
+    font-size: 17px;
 }
 
-.leaderboard div {
-    padding: 9px 3px;
+.minimize {
+    background: #263954;
+    padding: 5px 10px;
+    margin: 0;
+}
+
+.lb-tabs {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 12px;
+}
+
+.lb-tabs button {
+    flex: 1;
+    padding: 8px 4px;
+    font-size: 11px;
+    background: #263954;
+}
+
+.lb-tabs button.selected {
+    background: #167bff;
+}
+
+.lb-entry {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 3px;
     border-bottom: 1px solid #30435f;
-    font-size: 14px;
+    font-size: 13px;
+}
+
+.lb-entry .player {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.lb-entry .score {
+    color: #65b2ff;
+    white-space: nowrap;
+    font-weight: bold;
+}
+
+.lb-note {
+    font-size: 10px;
+    color: #778ba8;
+    margin-top: 12px;
+    text-align: center;
 }
 
 .game {
     position: absolute;
-    top: 47%;
+    top: 48%;
     left: 50%;
     transform: translate(-50%, -50%);
     text-align: center;
@@ -96,9 +150,10 @@ body {
 }
 
 .status {
-    margin: 20px;
+    margin: 18px;
     color: #aabbd1;
     font-size: 17px;
+    min-height: 22px;
 }
 
 .keys {
@@ -119,6 +174,7 @@ body {
     justify-content: center;
     font-size: 35px;
     font-weight: bold;
+    transition: 0.08s;
 }
 
 .key.active {
@@ -131,39 +187,118 @@ body {
     border-color: #ff6375;
 }
 
+.challenge-box {
+    display: none;
+    background: #17243a;
+    border: 1px solid #30435f;
+    border-radius: 12px;
+    padding: 15px;
+    width: 260px;
+    margin: 15px auto;
+}
+
+.challenge-box.show {
+    display: block;
+}
+
+.challenge-box h3 {
+    margin: 0;
+    color: #ffd34d;
+    font-size: 13px;
+}
+
+.target {
+    font-size: 38px;
+    font-weight: bold;
+    color: #ffd34d;
+    margin: 8px;
+}
+
+.challenge-info {
+    color: #aabbd1;
+    font-size: 12px;
+}
+
+.mode-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 15px;
+}
+
 button {
-    padding: 12px 19px;
-    margin: 5px;
+    padding: 12px 17px;
     background: #167bff;
     color: white;
     border: none;
     border-radius: 8px;
     cursor: pointer;
     font-weight: bold;
+    transition: 0.15s;
 }
 
 button:hover {
     background: #3993ff;
 }
 
+button.selected {
+    background: #0755a8;
+    outline: 2px solid #55aaff;
+}
+
+button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.username {
+    margin-top: 15px;
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+}
+
+.username input {
+    background: #17243a;
+    border: 1px solid #4775a8;
+    color: white;
+    padding: 11px;
+    border-radius: 7px;
+    width: 145px;
+    outline: none;
+}
+
+.username input:focus {
+    border-color: #4ba3ff;
+}
+
 .instructions {
-    position: absolute;
-    bottom: 20px;
+    position: fixed;
+    bottom: 18px;
     width: 100%;
     text-align: center;
     color: #7889a4;
-    font-size: 13px;
+    font-size: 12px;
+    pointer-events: none;
 }
 
-@media(max-width:600px) {
+@media(max-width:650px) {
     .leaderboard {
-        top: 140px;
+        top: 145px;
         right: 8px;
-        width: 140px;
+        width: 175px;
     }
 
     .cps {
         left: 8px;
+    }
+
+    .highscore {
+        top: 85px;
+    }
+
+    .game {
+        top: 57%;
     }
 }
 </style>
@@ -182,10 +317,39 @@ button:hover {
     <p id="highscore">0.00s</p>
 </div>
 
-<div class="leaderboard">
-    <h3>🏆 TOP 3</h3>
-    <div id="leaderboard"></div>
+<!-- LEADERBOARD -->
+
+<div class="leaderboard" id="leaderboardPanel">
+
+    <div class="lb-header">
+        <h3>🏆 LEADERBOARD</h3>
+        <button class="minimize" onclick="toggleLeaderboard()" id="minButton">−</button>
+    </div>
+
+    <div id="leaderboardContent">
+
+        <div class="lb-tabs">
+            <button id="timeTab" class="selected"
+                onclick="changeLeaderboard('time')">
+                TIME
+            </button>
+
+            <button id="cpsTab"
+                onclick="changeLeaderboard('cps')">
+                CPS
+            </button>
+        </div>
+
+        <div id="leaderboardEntries"></div>
+
+        <div class="lb-note">
+            Local leaderboard · This browser only
+        </div>
+
+    </div>
 </div>
+
+<!-- MAIN GAME -->
 
 <div class="game">
 
@@ -195,25 +359,90 @@ button:hover {
         Press either key to start!
     </div>
 
+    <!-- CHALLENGE TARGET -->
+
+    <div class="challenge-box" id="challengeBox">
+
+        <h3>YOUR TARGET CPS</h3>
+
+        <div class="target" id="targetCPS">10</div>
+
+        <div class="challenge-info">
+            Maintain this CPS or higher to survive!
+        </div>
+
+        <div class="challenge-info" style="margin-top:7px">
+            Your peak: <span id="peakCPS">0.00</span> CPS
+        </div>
+
+    </div>
+
+    <!-- KEY DISPLAY -->
+
     <div class="keys">
         <div class="key" id="key1">W</div>
         <div class="key" id="key2">/</div>
     </div>
 
-    <button onclick="chooseKey(0)">CHANGE KEY 1</button>
-    <button onclick="chooseKey(1)">CHANGE KEY 2</button>
-    <br>
-    <button onclick="resetGame()">RESET GAME</button>
+    <!-- MODE SELECTION -->
+
+    <div class="mode-buttons">
+
+        <button id="normalButton" class="selected"
+            onclick="setMode('normal')">
+            NORMAL MODE
+        </button>
+
+        <button id="challengeButton"
+            onclick="setMode('challenge')">
+            CHALLENGE MODE
+        </button>
+
+    </div>
+
+    <!-- USERNAME -->
+
+    <div class="username">
+
+        <input
+            type="text"
+            id="usernameInput"
+            maxlength="16"
+            placeholder="Username"
+        >
+
+        <button onclick="saveUsername()">
+            SAVE NAME
+        </button>
+
+    </div>
+
+    <!-- SETTINGS -->
+
+    <div style="margin-top:15px">
+
+        <button onclick="chooseKey(0)">CHANGE KEY 1</button>
+
+        <button onclick="chooseKey(1)">CHANGE KEY 2</button>
+
+        <button onclick="resetGame()">RESET GAME</button>
+
+    </div>
 
 </div>
 
 <div class="instructions">
-    Alternate between your two keys. Never press the same key twice!
+    Alternate your keys • Don't press the same key twice • Don't press both together
 </div>
 
 <script>
 
+// =============================
+// GAME SETTINGS
+// =============================
+
 let keys = ["w", "/"];
+
 let pressed = new Set();
 
 let running = false;
@@ -222,56 +451,221 @@ let animation;
 
 let lastKey = null;
 let choosing = -1;
+
 let keyTimes = [];
+let peakCPS = 0;
+
+let mode = "normal";
+let targetCPS = 10;
+
+let leaderboardMode = "time";
+let leaderboardMinimized = false;
 
 let highScore =
     Number(localStorage.getItem("twoKeyHighScore")) || 0;
 
-let leaderboard =
-    JSON.parse(localStorage.getItem("twoKeyLeaderboard") || "[]");
+let username =
+    localStorage.getItem("twoKeyUsername") || "Player";
+
+let records =
+    JSON.parse(localStorage.getItem("twoKeyRecords") || "[]");
+
+let currentRunId = 0;
 
 const timer = document.getElementById("timer");
 const status = document.getElementById("status");
 
-document.getElementById("highscore").textContent =
-    highScore.toFixed(2) + "s";
+// =============================
+// USERNAME
+// =============================
+
+document.getElementById("usernameInput").value = username;
+
+function saveUsername() {
+
+    let newName =
+        document.getElementById("usernameInput").value.trim();
+
+    if (!newName) {
+        status.textContent = "Enter a username first!";
+        return;
+    }
+
+    username = newName.substring(0, 16);
+
+    localStorage.setItem("twoKeyUsername", username);
+
+    status.textContent = "Username saved: " + username;
+
+    displayLeaderboard();
+}
+
+// =============================
+// KEY SETTINGS
+// =============================
 
 function displayKeys() {
+
     document.getElementById("key1").textContent =
         keys[0].toUpperCase();
 
     document.getElementById("key2").textContent =
         keys[1].toUpperCase();
+
 }
 
 function chooseKey(index) {
+
     if (running) return;
 
     choosing = index;
+
     status.textContent =
         "Press a key to set Key " + (index + 1);
+
 }
 
+// =============================
+// GAME MODE
+// =============================
+
+function setMode(newMode) {
+
+    if (running) return;
+
+    mode = newMode;
+
+    document.getElementById("normalButton")
+        .classList.toggle("selected", mode === "normal");
+
+    document.getElementById("challengeButton")
+        .classList.toggle("selected", mode === "challenge");
+
+    document.getElementById("challengeBox")
+        .classList.toggle("show", mode === "challenge");
+
+    if (mode === "challenge") {
+
+        status.textContent =
+            "Challenge Mode selected! Press either key to start.";
+
+    } else {
+
+        status.textContent =
+            "Normal Mode selected! Press either key to start.";
+
+    }
+
+}
+
+// =============================
+// START GAME
+// =============================
+
 function startGame() {
+
     running = true;
+
+    currentRunId++;
+
     startTime = performance.now();
 
-    status.textContent = "KEEP ALTERNATING!";
+    keyTimes = [];
 
-    function updateTimer() {
-        if (!running) return;
+    peakCPS = 0;
 
-        let elapsed = (performance.now() - startTime) / 1000;
+    if (mode === "challenge") {
 
-        timer.textContent = elapsed.toFixed(2);
+        targetCPS = Math.floor(Math.random() * 20) + 1;
 
-        animation = requestAnimationFrame(updateTimer);
+        document.getElementById("targetCPS").textContent =
+            targetCPS;
+
+        status.textContent =
+            "CHALLENGE ACTIVE! MAINTAIN " + targetCPS + " CPS!";
+
+    } else {
+
+        status.textContent = "KEEP ALTERNATING!";
+
     }
 
     updateTimer();
+
 }
 
+// =============================
+// TIMER
+// =============================
+
+function updateTimer() {
+
+    if (!running) return;
+
+    let elapsed = (performance.now() - startTime) / 1000;
+
+    timer.textContent = elapsed.toFixed(2);
+
+    animation = requestAnimationFrame(updateTimer);
+
+}
+
+// =============================
+// CPS CALCULATION
+// =============================
+
+function calculateCPS() {
+
+    let now = performance.now();
+
+    keyTimes = keyTimes.filter(
+        time => now - time < 1000
+    );
+
+    let cps = keyTimes.length;
+
+    document.getElementById("cps").textContent =
+        cps.toFixed(2);
+
+    if (cps > peakCPS) {
+
+        peakCPS = cps;
+
+        document.getElementById("peakCPS").textContent =
+            peakCPS.toFixed(2);
+
+    }
+
+    // CHALLENGE MODE CHECK
+
+    if (running && mode === "challenge") {
+
+        let elapsed = (now - startTime) / 1000;
+
+        // Give the player one second to build up their CPS.
+
+        if (elapsed >= 1 && cps < targetCPS) {
+
+            loseGame(
+                "CPS TOO LOW! REQUIRED: " + targetCPS + " CPS"
+            );
+
+        }
+
+    }
+
+}
+
+// Update CPS continuously.
+
+setInterval(calculateCPS, 50);
+
+// =============================
+// LOSE GAME
+// =============================
+
 function loseGame(reason) {
+
     if (!running) return;
 
     running = false;
@@ -284,10 +678,12 @@ function loseGame(reason) {
     timer.textContent = "0.00";
 
     status.textContent =
-        "GAME OVER! " + reason +
-        " | TIME: " + finalTime.toFixed(2) + "s";
+        "GAME OVER! " + reason;
+
+    // Personal time record
 
     if (finalTime > highScore) {
+
         highScore = finalTime;
 
         localStorage.setItem(
@@ -297,146 +693,177 @@ function loseGame(reason) {
 
         document.getElementById("highscore").textContent =
             highScore.toFixed(2) + "s";
+
     }
 
-    saveScore(finalTime);
+    // Save leaderboard record
 
-    pressed.clear();
-    lastKey = null;
+    records.push({
 
-    updateKeysVisual();
-}
+        username: username,
 
-function saveScore(score) {
-    leaderboard.push(score);
+        time: finalTime,
 
-    leaderboard.sort((a, b) => b - a);
+        cps: peakCPS,
 
-    leaderboard = leaderboard.slice(0, 3);
+        mode: mode,
+
+        date: Date.now()
+
+    });
+
+    // Keep records manageable.
+
+    records.sort((a, b) => b.time - a.time);
+
+    records = records.slice(0, 1000);
 
     localStorage.setItem(
-        "twoKeyLeaderboard",
-        JSON.stringify(leaderboard)
+        "twoKeyRecords",
+        JSON.stringify(records)
     );
 
+    pressed.clear();
+
+    lastKey = null;
+
+    updateKeyVisuals();
+
     displayLeaderboard();
+
 }
 
-function displayLeaderboard() {
-    const board = document.getElementById("leaderboard");
+// =============================
+// KEY VISUALS
+// =============================
 
-    board.innerHTML = "";
+function updateKeyVisuals() {
 
-    for (let i = 0; i < 3; i++) {
-        let div = document.createElement("div");
-
-        div.textContent =
-            (i + 1) + ". " +
-            (leaderboard[i] !== undefined
-                ? leaderboard[i].toFixed(2) + "s"
-                : "---");
-
-        board.appendChild(div);
-    }
-}
-
-function updateKeysVisual() {
     document.getElementById("key1").classList.toggle(
-        "active", pressed.has(keys[0])
+        "active",
+        pressed.has(keys[0])
     );
 
     document.getElementById("key2").classList.toggle(
-        "active", pressed.has(keys[1])
-    );
-}
-
-function updateCPS() {
-    let now = performance.now();
-
-    keyTimes = keyTimes.filter(
-        time => now - time < 1000
+        "active",
+        pressed.has(keys[1])
     );
 
-    document.getElementById("cps").textContent =
-        keyTimes.length.toFixed(2);
 }
+
+// =============================
+// KEYBOARD CONTROLS
+// =============================
 
 document.addEventListener("keydown", function(event) {
+
+    // Allow typing in username input.
+
+    if (
+        event.target.tagName === "INPUT" ||
+        event.target.tagName === "TEXTAREA"
+    ) return;
 
     if (event.repeat) return;
 
     let key = event.key.toLowerCase();
 
-    if (key === " ") event.preventDefault();
+    if (!keys.includes(key)) return;
+
+    event.preventDefault();
+
+    // Changing selected keys
 
     if (choosing !== -1) {
 
         if (
-            key.length !== 1 ||
-            key === keys[1 - choosing]
+            key === keys[1 - choosing] ||
+            key.length !== 1
         ) {
-            status.textContent = "Choose a different key!";
+
+            status.textContent =
+                "Choose a different key!";
+
             return;
+
         }
 
         keys[choosing] = key;
+
         choosing = -1;
 
         displayKeys();
 
-        status.textContent = "Press either key to start!";
+        status.textContent =
+            "Press either key to start!";
+
         return;
+
     }
 
-    if (!keys.includes(key)) return;
+    // Detect both keys being held together.
 
-    keyTimes.push(performance.now());
-    updateCPS();
+    let otherKey = keys.find(k => k !== key);
 
-    // Detect both keys pressed simultaneously
-    if (pressed.has(keys[0]) || pressed.has(keys[1])) {
+    if (pressed.has(otherKey)) {
 
         pressed.add(key);
-        updateKeysVisual();
 
-        if (pressed.has(keys[0]) && pressed.has(keys[1])) {
-            loseGame("BOTH KEYS PRESSED TOGETHER!");
-        }
+        updateKeyVisuals();
+
+        loseGame("BOTH KEYS PRESSED TOGETHER!");
 
         return;
+
     }
+
+    // Detect same key twice consecutively.
+
+    if (running && key === lastKey) {
+
+        pressed.add(key);
+
+        loseGame("SAME KEY TWICE!");
+
+        return;
+
+    }
+
+    // Start the game.
 
     if (!running) {
+
         startGame();
-        lastKey = key;
-        pressed.add(key);
-        updateKeysVisual();
-        return;
+
     }
 
-    // Detect pressing the same key twice consecutively
-    if (key === lastKey) {
-        pressed.add(key);
-        loseGame("SAME KEY TWICE!");
-        return;
-    }
+    // Record key press.
+
+    keyTimes.push(performance.now());
 
     lastKey = key;
 
     pressed.add(key);
-    updateKeysVisual();
+
+    updateKeyVisuals();
 
 });
+
+// =============================
+// KEY RELEASE
+// =============================
 
 document.addEventListener("keyup", function(event) {
 
-    let key = event.key.toLowerCase();
+    pressed.delete(event.key.toLowerCase());
 
-    pressed.delete(key);
-
-    updateKeysVisual();
+    updateKeyVisuals();
 
 });
+
+// =============================
+// RESET
+// =============================
 
 function resetGame() {
 
@@ -445,23 +872,142 @@ function resetGame() {
     cancelAnimationFrame(animation);
 
     pressed.clear();
+
     lastKey = null;
+
     choosing = -1;
+
+    keyTimes = [];
+
+    peakCPS = 0;
 
     timer.textContent = "0.00";
 
-    status.textContent = "Press either key to start!";
+    document.getElementById("cps").textContent = "0.00";
 
-    updateKeysVisual();
+    document.getElementById("peakCPS").textContent = "0.00";
+
+    status.textContent =
+        "Press either key to start!";
+
+    updateKeyVisuals();
+
 }
 
-setInterval(updateCPS, 100);
+// =============================
+// LEADERBOARD TYPE
+// =============================
+
+function changeLeaderboard(type) {
+
+    leaderboardMode = type;
+
+    document.getElementById("timeTab")
+        .classList.toggle("selected", type === "time");
+
+    document.getElementById("cpsTab")
+        .classList.toggle("selected", type === "cps");
+
+    displayLeaderboard();
+
+}
+
+// =============================
+// LEADERBOARD DISPLAY
+// =============================
+
+function displayLeaderboard() {
+
+    const board =
+        document.getElementById("leaderboardEntries");
+
+    board.innerHTML = "";
+
+    let sorted = [...records];
+
+    if (leaderboardMode === "time") {
+
+        sorted.sort((a, b) => b.time - a.time);
+
+    } else {
+
+        sorted.sort((a, b) => b.cps - a.cps);
+
+    }
+
+    let topThree = sorted.slice(0, 3);
+
+    for (let i = 0; i < 3; i++) {
+
+        let entry = document.createElement("div");
+
+        entry.className = "lb-entry";
+
+        let record = topThree[i];
+
+        if (record) {
+
+            let player = document.createElement("span");
+
+            player.className = "player";
+
+            player.textContent =
+                (i + 1) + ". " + record.username;
+
+            let score = document.createElement("span");
+
+            score.className = "score";
+
+            score.textContent =
+                leaderboardMode === "time"
+                    ? record.time.toFixed(2) + "s"
+                    : record.cps.toFixed(2) + " CPS";
+
+            entry.appendChild(player);
+
+            entry.appendChild(score);
+
+        } else {
+
+            entry.textContent = (i + 1) + ". ---";
+
+        }
+
+        board.appendChild(entry);
+
+    }
+
+}
+
+// =============================
+// MINIMIZE LEADERBOARD
+// =============================
+
+function toggleLeaderboard() {
+
+    leaderboardMinimized = !leaderboardMinimized;
+
+    document.getElementById("leaderboardContent")
+        .style.display =
+            leaderboardMinimized ? "none" : "block";
+
+    document.getElementById("minButton").textContent =
+        leaderboardMinimized ? "+" : "−";
+
+}
+
+// =============================
+// INITIALISE
+// =============================
+
+document.getElementById("highscore").textContent =
+    highScore.toFixed(2) + "s";
 
 displayKeys();
+
 displayLeaderboard();
 
 </script>
 
 </body>
 </html>
-
